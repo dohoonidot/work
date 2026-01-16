@@ -1,0 +1,9 @@
+{
+  "name": "ASPN AI Agent",
+  "short_name": "AAA",
+  "description": "ASPN AI Agent 모바일 웹 버전 - AI 채팅, 휴가 관리, 전자결재, 기프트, SAP 어시스턴트",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#1D4487"
+}

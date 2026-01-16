@@ -1,0 +1,9 @@
+/.idea
+/.gradle
+
+/highlighting/test/errors
+/highlighting/test/highlight.js
+
+/local.properties
+
+build

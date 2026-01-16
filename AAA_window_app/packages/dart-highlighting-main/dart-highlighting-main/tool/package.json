@@ -1,0 +1,24 @@
+{
+  "name": "tool",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "circular-json": "^0.5.9",
+    "esm": "^3.2.25",
+    "gulp": "^3.9.1",
+    "highlight.js": "11.8.0",
+    "lodash": "^4.17.15",
+    "postcss": "^7.0.17",
+    "typescript": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/circular-json": "^0.4.0",
+    "@types/lodash": "^4.14.192",
+    "@types/node": "^12.6.9",
+    "prettier": "^2.8.7"
+  },
+  "scripts": {
+    "start": "gulp"
+  }
+}

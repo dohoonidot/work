@@ -1,0 +1,714 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  Button,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Alert,
+  CircularProgress,
+  Divider,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Visibility as VisibilityIcon,
+  FilterList as FilterListIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
+import leaveService from '../services/leaveService';
+import type { AdminManagementData, AdminLeaveRequest, AdminManagementApiResponse } from '../types/leave';
+
+const AdminLeaveApprovalPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [currentTab, setCurrentTab] = useState<'pending' | 'all'>('pending');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [adminData, setAdminData] = useState<AdminManagementData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AdminLeaveRequest | null>(null);
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [processing, setProcessing] = useState(false);
+
+  // 관리자 권한 확인
+  useEffect(() => {
+    if (!authService.hasAdminPermission()) {
+      navigate('/leave-management');
+      return;
+    }
+    
+    loadAdminData();
+  }, [navigate]);
+
+  const loadAdminData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const user = authService.getCurrentUser();
+      if (!user) {
+        throw new Error('사용자 정보를 찾을 수 없습니다.');
+      }
+
+      // 관리자 관리 데이터 로드 (Flutter의 getAdminManagementData 참조)
+      const response = await leaveService.getAdminManagementData({
+        approver_id: user.userId,
+        month: new Date().toISOString().substring(0, 7), // YYYY-MM 형식
+      });
+
+      // API 응답 구조에 맞게 데이터 변환 (실제 API 응답 구조 반영)
+      const allRequests = (response.waiting_leaves || []).map((item: any) => ({
+        request_id: item.id?.toString() || '',
+        user_id: item.name || '',
+        user_name: item.name || '',
+        leave_type: item.leave_type || '휴가',
+        start_date: item.start_date || '',
+        end_date: item.end_date || '',
+        days: item.days || 0,
+        reason: item.reason || '',
+        status: item.status || 'REQUESTED',
+        request_date: item.request_date || '',
+        approver_id: item.approver_id || '',
+        approver_name: item.approver_name || '',
+        approval_date: item.approval_date || '',
+        rejection_reason: item.rejection_reason || '',
+      }));
+
+      const transformedData: AdminManagementData = {
+        pending_requests: allRequests.filter(req => req.status === 'REQUESTED'),
+        all_requests: allRequests,
+        department_members: [], // 필요시 추가 구현
+        monthly_stats: {
+          total_requests: allRequests.length,
+          approved_requests: (response.approval_status || []).find((status: any) => status.status === 'APPROVED')?.count || 0,
+          rejected_requests: (response.approval_status || []).find((status: any) => status.status === 'REJECTED')?.count || 0,
+          pending_requests: (response.approval_status || []).find((status: any) => status.status === 'REQUESTED')?.count || 0,
+        },
+      };
+
+      setAdminData(transformedData);
+    } catch (err: any) {
+      console.error('관리자 데이터 로드 실패:', err);
+      setError(err.message || '관리자 데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: 'pending' | 'all') => {
+    setCurrentTab(newValue);
+  };
+
+  const handleStatusFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setStatusFilter(event.target.value);
+  };
+
+  const handleApprove = async (request: AdminLeaveRequest) => {
+    setSelectedRequest(request);
+    setApprovalDialogOpen(true);
+  };
+
+  const handleReject = async (request: AdminLeaveRequest) => {
+    setSelectedRequest(request);
+    setRejectionReason('');
+    setApprovalDialogOpen(true);
+  };
+
+  const handleApprovalSubmit = async (action: 'approve' | 'reject') => {
+    if (!selectedRequest) return;
+
+    try {
+      setProcessing(true);
+
+      if (action === 'approve') {
+        await leaveService.approveLeaveRequest(selectedRequest.request_id, {
+          approver_id: authService.getCurrentUser()?.userId || '',
+          approval_date: new Date().toISOString(),
+        });
+      } else {
+        if (!rejectionReason.trim()) {
+          alert('반려 사유를 입력해주세요.');
+          return;
+        }
+        
+        await leaveService.rejectLeaveRequest(selectedRequest.request_id, {
+          approver_id: authService.getCurrentUser()?.userId || '',
+          rejection_reason: rejectionReason,
+          rejection_date: new Date().toISOString(),
+        });
+      }
+
+      // 데이터 새로고침
+      await loadAdminData();
+      setApprovalDialogOpen(false);
+      setSelectedRequest(null);
+      setRejectionReason('');
+    } catch (err: any) {
+      console.error('결재 처리 실패:', err);
+      alert(err.message || '결재 처리에 실패했습니다.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'REQUESTED': return 'warning';
+      case 'APPROVED': return 'success';
+      case 'REJECTED': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'REQUESTED': return '대기중';
+      case 'APPROVED': return '승인';
+      case 'REJECTED': return '반려';
+      default: return status;
+    }
+  };
+
+  const filteredRequests = () => {
+    if (!adminData) return [];
+    
+    const requests = currentTab === 'pending' ? (adminData.pending_requests || []) : (adminData.all_requests || []);
+    
+    if (!statusFilter) return requests;
+    
+    return requests.filter(request => request.status === statusFilter);
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+        <Typography variant="body1" sx={{ ml: 2 }}>
+          관리자 데이터를 불러오는 중...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={3}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button 
+          variant="contained" 
+          startIcon={<RefreshIcon />}
+          onClick={loadAdminData}
+        >
+          다시 시도
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* 헤더 */}
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <IconButton
+          onClick={() => navigate('/leave-management')}
+          sx={{ 
+            color: '#6F42C1',
+            '&:hover': {
+              backgroundColor: 'rgba(111, 66, 193, 0.1)',
+            }
+          }}
+          title="휴가관리로 돌아가기"
+        >
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+        </IconButton>
+        <AdminPanelSettingsIcon sx={{ fontSize: 32, color: '#6F42C1' }} />
+        <Box>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: '#6F42C1' }}>
+            관리자 휴가결재 관리
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* 통계 카드 */}
+      {adminData && (
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography color="text.secondary" gutterBottom>
+                  총 신청
+                </Typography>
+                <Typography variant="h4">
+                  {adminData.monthly_stats?.total_requests || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography color="text.secondary" gutterBottom>
+                  승인
+                </Typography>
+                <Typography variant="h4" color="success.main">
+                  {adminData.monthly_stats?.approved_requests || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography color="text.secondary" gutterBottom>
+                  반려
+                </Typography>
+                <Typography variant="h4" color="error.main">
+                  {adminData.monthly_stats?.rejected_requests || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography color="text.secondary" gutterBottom>
+                  대기중
+                </Typography>
+                <Typography variant="h4" color="warning.main">
+                  {adminData.monthly_stats?.pending_requests || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* 탭 및 필터 */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Tabs value={currentTab} onChange={handleTabChange}>
+            <Tab label="승인 대기" value="pending" />
+            <Tab label="전체 내역" value="all" />
+          </Tabs>
+          
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>상태 필터</InputLabel>
+              <Select
+                value={statusFilter}
+                label="상태 필터"
+                onChange={handleStatusFilterChange}
+              >
+                <MenuItem value="">전체</MenuItem>
+                <MenuItem value="REQUESTED">대기중</MenuItem>
+                <MenuItem value="APPROVED">승인</MenuItem>
+                <MenuItem value="REJECTED">반려</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <IconButton onClick={loadAdminData} color="primary">
+              <RefreshIcon />
+            </IconButton>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 요청 목록 - 모바일 친화적 리스트 */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        {filteredRequests().map((request, index) => (
+          <Card 
+            key={`${request.request_id}-${index}`} 
+            sx={{ 
+              mb: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                boxShadow: 3,
+                transform: 'translateY(-2px)',
+              },
+              '&:active': {
+                transform: 'translateY(0px)',
+              }
+            }}
+            onClick={() => {
+              setSelectedRequest(request);
+              setApprovalDialogOpen(true);
+              setRejectionReason('');
+            }}
+          >
+            <CardContent sx={{ p: 2 }}>
+              {/* 헤더 정보 */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" fontWeight="medium">
+                    {request.user_name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {request.user_id}
+                  </Typography>
+                </Box>
+                <Chip 
+                  label={getStatusText(request.status)} 
+                  color={getStatusColor(request.status) as any}
+                  size="small"
+                />
+              </Box>
+
+              {/* 휴가 정보 */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  휴가 유형: {request.leave_type}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  기간: {new Date(request.start_date).toLocaleDateString()} ~ {new Date(request.end_date).toLocaleDateString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  일수: {request.days}일
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  신청일: {new Date(request.request_date).toLocaleDateString()}
+                </Typography>
+              </Box>
+
+              {/* 사유 미리보기 */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  사유:
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    p: 1.5, 
+                    bgcolor: 'grey.50', 
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'grey.200',
+                    fontSize: '0.875rem',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    lineHeight: 1.4,
+                    maxHeight: '2.8em'
+                  }}
+                >
+                  {request.reason}
+                </Typography>
+              </Box>
+
+              {/* 액션 버튼 */}
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
+                  탭하여 상세보기
+                </Typography>
+                
+                {request.status === 'REQUESTED' && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size="small"
+                      color="success"
+                      variant="contained"
+                      startIcon={<CheckCircleIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApprove(request);
+                      }}
+                      sx={{ minWidth: 'auto', px: 1.5 }}
+                    >
+                      승인
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="contained"
+                      startIcon={<CancelIcon />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReject(request);
+                      }}
+                      sx={{ minWidth: 'auto', px: 1.5 }}
+                    >
+                      반려
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+
+      {/* 데스크톱용 테이블 */}
+      <TableContainer component={Paper} sx={{ display: { xs: 'none', md: 'block' } }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>신청자</TableCell>
+              <TableCell>휴가 유형</TableCell>
+              <TableCell>기간</TableCell>
+              <TableCell>일수</TableCell>
+              <TableCell>사유</TableCell>
+              <TableCell>상태</TableCell>
+              <TableCell>신청일</TableCell>
+              <TableCell align="center">작업</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredRequests().map((request, index) => (
+              <TableRow key={`${request.request_id}-${index}`}>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {request.user_name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {request.user_id}
+                  </Typography>
+                </TableCell>
+                <TableCell>{request.leave_type}</TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {new Date(request.start_date).toLocaleDateString()} ~ 
+                    {new Date(request.end_date).toLocaleDateString()}
+                  </Typography>
+                </TableCell>
+                <TableCell>{request.days}일</TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {request.reason}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={getStatusText(request.status)} 
+                    color={getStatusColor(request.status) as any}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {new Date(request.request_date).toLocaleDateString()}
+                </TableCell>
+                <TableCell align="center">
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                    {/* 상세보기 버튼 (모든 상태에 표시) */}
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setApprovalDialogOpen(true);
+                        setRejectionReason('');
+                      }}
+                      title="상세보기"
+                      color="primary"
+                    >
+                      <VisibilityIcon fontSize="small" />
+                    </IconButton>
+                    
+                    {/* 승인/반려 버튼 (대기중 상태에만 표시) */}
+                    {request.status === 'REQUESTED' && (
+                      <>
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={() => handleApprove(request)}
+                          title="승인"
+                        >
+                          <CheckCircleIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleReject(request)}
+                          title="반려"
+                        >
+                          <CancelIcon fontSize="small" />
+                        </IconButton>
+                      </>
+                    )}
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* 결재 다이얼로그 */}
+      <Dialog open={approvalDialogOpen} onClose={() => setApprovalDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {selectedRequest?.status === 'REQUESTED' ? '휴가 신청 결재' : '휴가 신청 상세내역'}
+        </DialogTitle>
+        <DialogContent>
+          {selectedRequest && (
+            <Box sx={{ pt: 1 }}>
+              <Grid container spacing={2}>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">신청자</Typography>
+                  <Typography variant="body1">{selectedRequest.user_name}</Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">휴가 유형</Typography>
+                  <Typography variant="body1">{selectedRequest.leave_type}</Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">시작일</Typography>
+                  <Typography variant="body1">
+                    {new Date(selectedRequest.start_date).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">종료일</Typography>
+                  <Typography variant="body1">
+                    {new Date(selectedRequest.end_date).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">휴가 일수</Typography>
+                  <Typography variant="body1">{selectedRequest.days}일</Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">신청일</Typography>
+                  <Typography variant="body1">
+                    {new Date(selectedRequest.request_date).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size={6}>
+                  <Typography variant="body2" color="text.secondary">현재 상태</Typography>
+                  <Chip 
+                    label={getStatusText(selectedRequest.status)} 
+                    color={getStatusColor(selectedRequest.status) as any}
+                    size="small"
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <Typography variant="body2" color="text.secondary">사유</Typography>
+                  <Typography variant="body1" sx={{ 
+                    p: 2, 
+                    bgcolor: 'grey.50', 
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'grey.200'
+                  }}>
+                    {selectedRequest.reason}
+                  </Typography>
+                </Grid>
+                
+                {/* 승인/반려 정보 표시 (이미 처리된 경우) */}
+                {selectedRequest.status !== 'REQUESTED' && (
+                  <>
+                    <Grid size={12}>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        처리 정보
+                      </Typography>
+                    </Grid>
+                    {selectedRequest.approver_name && (
+                      <Grid size={6}>
+                        <Typography variant="body2" color="text.secondary">처리자</Typography>
+                        <Typography variant="body1">{selectedRequest.approver_name}</Typography>
+                      </Grid>
+                    )}
+                    {selectedRequest.approval_date && (
+                      <Grid size={6}>
+                        <Typography variant="body2" color="text.secondary">처리일</Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedRequest.approval_date).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {selectedRequest.rejection_reason && (
+                      <Grid size={12}>
+                        <Typography variant="body2" color="text.secondary">반려 사유</Typography>
+                        <Typography variant="body1" sx={{ 
+                          p: 2, 
+                          bgcolor: 'error.50', 
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'error.200',
+                          color: 'error.main'
+                        }}>
+                          {selectedRequest.rejection_reason}
+                        </Typography>
+                      </Grid>
+                    )}
+                  </>
+                )}
+                
+                {selectedRequest.status === 'REQUESTED' && (
+                  <Grid size={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <TextField
+                      fullWidth
+                      label="반려 사유 (반려 시에만 입력)"
+                      multiline
+                      rows={3}
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="반려 사유를 입력하세요..."
+                    />
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setApprovalDialogOpen(false)}>
+            {selectedRequest?.status === 'REQUESTED' ? '취소' : '닫기'}
+          </Button>
+          {selectedRequest?.status === 'REQUESTED' && (
+            <>
+              <Button
+                color="error"
+                onClick={() => handleApprovalSubmit('reject')}
+                disabled={processing}
+                startIcon={<CancelIcon />}
+              >
+                반려
+              </Button>
+              <Button
+                color="success"
+                onClick={() => handleApprovalSubmit('approve')}
+                disabled={processing}
+                variant="contained"
+                startIcon={<CheckCircleIcon />}
+              >
+                승인
+              </Button>
+            </>
+          )}
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default AdminLeaveApprovalPage;

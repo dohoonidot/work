@@ -1,0 +1,28 @@
+{
+  "appName": "ASPN AI Agent",
+  "description": "Multi-AI Chat Client for Desktop",
+  "items": [
+    {
+      "version": "1.3.0",
+      "shortVersion": 10,
+      "changes": [
+        {
+          "type": "feat",
+          "message": "전체 검색 기능 구현"
+        },
+        {
+          "type": "feat",
+          "message": "UI/UX 최적화"
+        },
+        {
+          "type": "chore",
+          "message": "성능 개선 및 버그 수정"
+        }
+      ],
+      "date": "2025-10-14",
+      "mandatory": false,
+      "url": "https://github.com/dohooniaspn/ASPN_AI_AGENT/releases/download/v1.3.0",
+      "platform": "windows"
+    }
+  ]
+}

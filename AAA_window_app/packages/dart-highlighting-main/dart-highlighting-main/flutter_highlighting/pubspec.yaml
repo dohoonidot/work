@@ -1,0 +1,20 @@
+name: flutter_highlighting
+description: Syntax highlighting widget for Flutter with lots of languages and themes support.
+version: 0.9.1+11.8.0
+homepage: https://github.com/akvelon/dart-highlighting
+
+publish_to: none  # 내부 패키지로 설정하여 'path' 의존성 오류 해결
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  highlighting:
+    path: ../highlighting  # highlighting 패키지 경로는 상대 경로에 pubspec.yaml이 있어야 함
+
+dev_dependencies:
+  total_lints: ^3.4.0

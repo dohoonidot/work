@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>ASPN AI Agent</title>
+    <description>Multi-AI Chat Client for Desktop</description>
+    <language>ko</language>
+
+    <item sparkle:criticalUpdate="true">
+      <title>Version 1.3.1</title>
+      <description>
+        <![CDATA[
+          <h2>업데이트 내역 (v1.3.1)</h2>
+          <ul>
+            <li>자동 업데이트 기능 적용: 이제 업데이트 버튼만 누르면 최신 버전으로 적용됩니다.<br/>
+                <strong>단, 이번에 배포한 .exe 를 제외한 기존 파일은 전부 삭제 부탁드립니다.</strong>
+            </li>
+            <li>AI 모델 사용 시 PDF 첨부 기능 추가</li>
+            <li>AI 모델 사용 시 웹 검색 기능 추가</li>
+            <li>Claude-sonnet-4 → Claude-sonnet-4.5 업그레이드</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Wed, 15 Oct 2025 00:00:00 +0900</pubDate>
+      <enclosure
+        url="https://github.com/dohooniaspn/ASPN_AI_AGENT/releases/download/v1.3.1/ASPN_AI_Agent_Setup_v1.3.1.exe"
+        sparkle:version="1.3.1"
+        sparkle:shortVersionString="1.3.1"
+        sparkle:criticalUpdate="true"
+        type="application/octet-stream"
+        sparkle:installerArguments="/SILENT /SP- /SUPPRESSMSGBOXES"
+      />
+    </item>
+
+  </channel>
+</rss>
