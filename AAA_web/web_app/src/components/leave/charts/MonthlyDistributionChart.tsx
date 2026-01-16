@@ -67,8 +67,8 @@ const MonthlyDistributionChart: React.FC<MonthlyDistributionChartProps> = ({
     };
 
     return (
-        <Box sx={{ width: '100%', height: 250, mt: 2 }}>
-            <ResponsiveContainer width="100%" height="100%">
+        <Box sx={{ width: '100%', height: 250, minHeight: 250, minWidth: 0, mt: 2 }}>
+            <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                     data={data}
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}

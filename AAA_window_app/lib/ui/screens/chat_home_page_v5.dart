@@ -5216,12 +5216,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 if (requestId.isEmpty) {
                   print('🔴 requestId가 비어있음! API 호출 불가능');
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showErrorSnackBar(context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
                   }
                   return;
                 }
@@ -5261,31 +5256,19 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                     setState(() {
                       _approvalRequests.remove(request);
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('휴가를 승인했습니다.'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showSuccessSnackBar(context, '휴가를 승인했습니다.');
                   }
                 } else {
                   print('🔴 승인 처리 실패 - error: ${result.error}');
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('승인 처리 실패: ${result.error}'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showErrorSnackBar(context, '승인 처리 실패: ${result.error}');
                   }
                 }
               } catch (e) {
                 print('🔴 휴가 승인 API 호출 중 Exception 발생: $e');
                 print('🔴 Exception Stack Trace: ${StackTrace.current}');
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('승인 처리 중 오류가 발생했습니다: $e')),
-                  );
+                  CommonUIUtils.showErrorSnackBar(context, '승인 처리 중 오류가 발생했습니다: $e');
                 }
               }
             },
@@ -5352,9 +5335,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
           ElevatedButton.icon(
             onPressed: () async {
               if (reasonController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('반려 사유를 입력해주세요.')),
-                );
+                CommonUIUtils.showWarningSnackBar(context, '반려 사유를 입력해주세요.');
                 return;
               }
               Navigator.pop(context);
@@ -5389,12 +5370,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 if (requestId.isEmpty) {
                   print('🔴 requestId가 비어있음! API 호출 불가능');
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showErrorSnackBar(context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
                   }
                   return;
                 }
@@ -5434,31 +5410,19 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                     setState(() {
                       _approvalRequests.remove(request);
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('휴가를 반려했습니다.'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showInfoSnackBar(context, '휴가를 반려했습니다.');
                   }
                 } else {
                   print('🔴 반료 처리 실패 - error: ${result.error}');
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('반료 처리 실패: ${result.error}'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
+                    CommonUIUtils.showErrorSnackBar(context, '반려 처리 실패: ${result.error}');
                   }
                 }
               } catch (e) {
                 print('🔴 휴가 반료 API 호출 중 Exception 발생: $e');
                 print('🔴 Exception Stack Trace: ${StackTrace.current}');
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('반료 처리 중 오류가 발생했습니다: $e')),
-                  );
+                  CommonUIUtils.showErrorSnackBar(context, '반려 처리 중 오류가 발생했습니다: $e');
                 }
               }
             },
@@ -5536,23 +5500,11 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
 
       // 성공 메시지 표시
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('HTML 테스트 데이터가 로드되었습니다. 전자결재 패널에서 기본양식을 선택하여 확인하세요.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        CommonUIUtils.showSuccessSnackBar(context, 'HTML 테스트 데이터가 로드되었습니다. 전자결재 패널에서 기본양식을 선택하여 확인하세요.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('HTML 테스트 데이터 로드 실패: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, 'HTML 테스트 데이터 로드 실패: $e');
       }
     }
   }

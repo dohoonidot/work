@@ -1,5 +1,7 @@
-import React from 'react';
-import { Box, Typography, Grid, Paper } from '@mui/material';
+import React, { useMemo, useState } from 'react';
+import { Box, Typography, Paper, IconButton } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs from 'dayjs';
 
 interface VacationCalendarGridProps {
@@ -11,22 +13,24 @@ const VacationCalendarGrid: React.FC<VacationCalendarGridProps> = ({
     recommendedDates,
     isDarkTheme,
 }) => {
-    const currentYear = recommendedDates.length > 0
+    const initialYear = recommendedDates.length > 0
         ? dayjs(recommendedDates[0]).year()
         : dayjs().year();
+    const [displayYear, setDisplayYear] = useState(initialYear);
+    const [displayMonth, setDisplayMonth] = useState(0);
+
+    const recommendedSet = useMemo(() => new Set(recommendedDates), [recommendedDates]);
 
     // 특정 월의 일수 및 시작 요일 계산
-    const getDaysInMonth = (month: number) => {
-        const firstDay = dayjs(`${currentYear}-${month + 1}-01`);
+    const getDaysInMonth = (month: number, year: number) => {
+        const firstDay = dayjs(`${year}-${month + 1}-01`);
         const daysInMonth = firstDay.daysInMonth();
         const startDay = firstDay.day(); // 0: 일요일
         return { daysInMonth, startDay };
     };
 
-    const renderMonth = (month: number) => {
-        const { daysInMonth, startDay } = getDaysInMonth(month);
-        const monthName = dayjs().month(month).format('M월');
-
+    const renderMonth = (month: number, year: number) => {
+        const { daysInMonth, startDay } = getDaysInMonth(month, year);
         // 캘린더 그리드 생성 (최대 6주)
         const days = [];
         // 이전 달 빈 칸
@@ -36,8 +40,8 @@ const VacationCalendarGrid: React.FC<VacationCalendarGridProps> = ({
 
         // 이번 달 날짜
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${currentYear}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
-            const isRecommended = recommendedDates.includes(dateStr);
+            const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+            const isRecommended = recommendedSet.has(dateStr);
             const isWeekend = dayjs(dateStr).day() === 0 || dayjs(dateStr).day() === 6;
 
             days.push(
@@ -87,18 +91,6 @@ const VacationCalendarGrid: React.FC<VacationCalendarGridProps> = ({
                     height: '100%',
                 }}
             >
-                <Typography
-                    variant="subtitle2"
-                    sx={{
-                        mb: 1,
-                        fontWeight: 700,
-                        color: isDarkTheme ? 'white' : 'black',
-                        textAlign: 'center',
-                        fontSize: '12px',
-                    }}
-                >
-                    {monthName}
-                </Typography>
                 <Box
                     sx={{
                         display: 'grid',
@@ -127,15 +119,48 @@ const VacationCalendarGrid: React.FC<VacationCalendarGridProps> = ({
         );
     };
 
+    const handlePrev = () => {
+        setDisplayMonth((prev) => {
+            if (prev === 0) {
+                setDisplayYear((year) => year - 1);
+                return 11;
+            }
+            return prev - 1;
+        });
+    };
+
+    const handleNext = () => {
+        setDisplayMonth((prev) => {
+            if (prev === 11) {
+                setDisplayYear((year) => year + 1);
+                return 0;
+            }
+            return prev + 1;
+        });
+    };
+
     return (
         <Box sx={{ width: '100%' }}>
-            <Grid container spacing={2}>
-                {[...Array(12)].map((_, i) => (
-                    <Grid xs={6} sm={4} md={3} key={i}>
-                        {renderMonth(i)}
-                    </Grid>
-                ))}
-            </Grid>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <IconButton
+                    onClick={handlePrev}
+                    size="small"
+                    sx={{ color: isDarkTheme ? '#D1D5DB' : '#4B5563' }}
+                >
+                    <ChevronLeftIcon />
+                </IconButton>
+                <Typography sx={{ fontWeight: 700, color: isDarkTheme ? 'white' : 'black' }}>
+                    {displayYear}년 {displayMonth + 1}월
+                </Typography>
+                <IconButton
+                    onClick={handleNext}
+                    size="small"
+                    sx={{ color: isDarkTheme ? '#D1D5DB' : '#4B5563' }}
+                >
+                    <ChevronRightIcon />
+                </IconButton>
+            </Box>
+            {renderMonth(displayMonth, displayYear)}
         </Box>
     );
 };

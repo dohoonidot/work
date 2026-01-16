@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
   Paper,
+  useTheme,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CloseIcon from '@mui/icons-material/Close';
@@ -31,11 +32,12 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useNotificationStore, extractNotificationDetails } from '../../store/notificationStore';
 import { useNavigate } from 'react-router-dom';
 import { ackSseNotifications } from '../../services/sseService';
 import type { NotificationDisplay } from '../../types/notification';
+import LeaveAnalyzeNotificationContent from '../leave/LeaveAnalyzeNotificationContent';
+import { sanitizeNotificationPreview } from '../../utils/notificationHelpers';
 
 /**
  * 알림 패널 아이콘 버튼
@@ -43,6 +45,8 @@ import type { NotificationDisplay } from '../../types/notification';
  */
 export function NotificationButton() {
   const { unreadCount, toggleNotificationPanel } = useNotificationStore();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   return (
     <IconButton
@@ -50,10 +54,10 @@ export function NotificationButton() {
       aria-label="알림"
       sx={{ 
         mr: 1,
-        bgcolor: 'rgba(29, 68, 135, 0.9)',
+        bgcolor: isDark ? 'rgba(37, 99, 235, 0.35)' : 'rgba(29, 68, 135, 0.9)',
         color: 'white',
         '&:hover': {
-          bgcolor: 'rgba(29, 68, 135, 1)',
+          bgcolor: isDark ? 'rgba(37, 99, 235, 0.55)' : 'rgba(29, 68, 135, 1)',
         },
         boxShadow: 2,
       }}
@@ -71,6 +75,12 @@ export function NotificationButton() {
  */
 export function NotificationPanel() {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const panelBg = isDark ? '#0F172A' : '#F8F9FA';
+  const panelSurface = isDark ? '#111827' : 'white';
+  const panelBorder = isDark ? 'rgba(255,255,255,0.08)' : 'divider';
+  const headerBg = isDark ? '#1E3A8A' : '#1D4487';
   const {
     isNotificationPanelOpen,
     setNotificationPanelOpen,
@@ -179,7 +189,14 @@ export function NotificationPanel() {
       onClose={handleClose}
       disableEnforceFocus={true}
       disableRestoreFocus={true}
+      sx={{
+        zIndex: (theme) => theme.zIndex.appBar + 2,
+        '& .MuiDrawer-paper': {
+          zIndex: (theme) => theme.zIndex.appBar + 3,
+        },
+      }}
       ModalProps={{
+        sx: { zIndex: (theme) => theme.zIndex.appBar + 2 },
         disableAutoFocus: true,
         disableEnforceFocus: true,
         disableRestoreFocus: true,
@@ -190,7 +207,7 @@ export function NotificationPanel() {
         sx: {
           width: { xs: '100%', sm: 400 },
           maxWidth: '100%',
-          bgcolor: '#F8F9FA',
+          bgcolor: panelBg,
         },
       }}
     >
@@ -199,7 +216,7 @@ export function NotificationPanel() {
         <Box
           sx={{
             p: 2,
-            bgcolor: '#1D4487',
+            bgcolor: headerBg,
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -215,8 +232,8 @@ export function NotificationPanel() {
               label={`${notifications.length}개`}
               size="small"
               sx={{
-                bgcolor: 'white',
-                color: '#1D4487',
+                bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'white',
+                color: isDark ? 'white' : '#1D4487',
                 fontWeight: 600,
               }}
             />
@@ -224,13 +241,13 @@ export function NotificationPanel() {
         </Box>
 
         {/* 액션 버튼 영역 */}
-        <Box sx={{ p: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+        <Box sx={{ p: 1, borderBottom: 1, borderColor: panelBorder, bgcolor: panelSurface }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {/* 왼쪽: 뒤로가기 버튼 */}
             <IconButton
               size="small"
               onClick={handleClose}
-              sx={{ color: 'text.secondary' }}
+              sx={{ color: isDark ? 'grey.400' : 'text.secondary' }}
             >
               <ArrowBackIcon />
             </IconButton>
@@ -248,7 +265,7 @@ export function NotificationPanel() {
 
         {/* 추가 액션 버튼 (모두 읽음, 모두 삭제) */}
         {notifications.length > 0 && (
-          <Box sx={{ p: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+          <Box sx={{ p: 1, borderBottom: 1, borderColor: panelBorder, bgcolor: panelSurface }}>
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               {unreadCount > 0 && (
                 <Button
@@ -283,18 +300,18 @@ export function NotificationPanel() {
               width: '10px',
             },
             '&::-webkit-scrollbar-track': {
-              backgroundColor: 'rgba(0,0,0,0.05)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
               borderRadius: '5px',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'rgba(0,0,0,0.3)',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
               borderRadius: '5px',
-              border: '2px solid rgba(0,0,0,0.05)',
+              border: isDark ? '2px solid rgba(255,255,255,0.08)' : '2px solid rgba(0,0,0,0.05)',
               '&:hover': {
-                backgroundColor: 'rgba(0,0,0,0.5)',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.5)',
               },
               '&:active': {
-                backgroundColor: 'rgba(0,0,0,0.6)',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.6)',
               },
             },
           }}
@@ -307,7 +324,7 @@ export function NotificationPanel() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100%',
-                color: 'text.secondary',
+                color: isDark ? 'grey.400' : 'text.secondary',
               }}
             >
               <NotificationsIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
@@ -359,11 +376,11 @@ export function NotificationPanel() {
                         <>
                           <Typography
                             variant="body2"
-                            color="text.primary"
+                            color={isDark ? 'grey.200' : 'text.primary'}
                             component="span"
                             sx={{ mb: 0.5, display: 'block' }}
                           >
-                            {notification.message}
+                            {sanitizeNotificationPreview(notification.message, 120)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" component="span">
                             {formatTime(notification.receivedAt)}
@@ -398,7 +415,7 @@ export function NotificationPanel() {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { minHeight: '400px' }
+          sx: { minHeight: '400px', bgcolor: panelSurface }
         }}
       >
         <DialogTitle>
@@ -420,47 +437,10 @@ export function NotificationPanel() {
             {/* 메시지 내용 */}
             {selectedNotification?.queue_name === 'leave.analyze' ? (
               // AI 휴가 추천 분석 결과 표시
-              <Box>
-                <Paper
-                  sx={{
-                    p: 3,
-                    bgcolor: 'grey.50',
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <AutoAwesomeIcon sx={{ color: 'primary.main' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      AI 휴가 추천 분석 결과
-                    </Typography>
-                  </Box>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {selectedNotification?.message}
-                  </Typography>
-                </Paper>
-
-                {/* 추천 사항 요약 */}
-                <Paper
-                  sx={{
-                    p: 3,
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-                    💡 추천 사항
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    • AI가 분석한 휴가 추천 결과를 확인하세요<br/>
-                    • 휴가 관리 페이지에서 자세한 차트와 캘린더를 확인할 수 있습니다
-                  </Typography>
-                </Paper>
-              </Box>
+              <LeaveAnalyzeNotificationContent
+                message={selectedNotification?.message || ''}
+                isDark={isDark}
+              />
             ) : (
               // 일반 알림 메시지 표시
               <Box>
@@ -489,10 +469,10 @@ export function NotificationPanel() {
                   <Paper
                     sx={{
                       p: 2.5,
-                      bgcolor: 'grey.50',
+                      bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'grey.50',
                       borderRadius: 2,
                       border: '1px solid',
-                      borderColor: 'divider'
+                      borderColor: panelBorder
                     }}
                   >
                     <Box

@@ -53,6 +53,7 @@ export default function LeaveManagement() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
 
   // 상태 관리
@@ -241,15 +242,15 @@ export default function LeaveManagement() {
       height: isMobile ? '100dvh' : '100vh', // 모바일에서 동적 뷰포트 높이 사용
       display: 'flex',
       flexDirection: 'column',
-      bgcolor: '#F5F5F5',
+      bgcolor: isDark ? '#0F172A' : '#F5F5F5',
       overflow: 'hidden', // 전체 컨테이너에서 오버플로우 방지
     }}>
       {/* AppBar */}
       <Box
         sx={{
-          bgcolor: '#F5F5F5',
+          bgcolor: isDark ? '#0F172A' : '#F5F5F5',
           borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'divider',
           px: isMobile ? 1 : 2,
           py: 1.5,
           display: 'flex',
@@ -259,14 +260,14 @@ export default function LeaveManagement() {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {isMobile && (
-            <IconButton onClick={() => setSidebarExpanded(true)} size="small">
+            <IconButton onClick={() => setSidebarExpanded(true)} size="small" sx={{ color: isDark ? '#E5E7EB' : 'inherit' }}>
               <MenuIcon />
             </IconButton>
           )}
-          <IconButton onClick={() => navigate('/chat')} size="small">
+          <IconButton onClick={() => navigate('/chat')} size="small" sx={{ color: isDark ? '#E5E7EB' : 'inherit' }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: isMobile ? '16px' : '18px' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: isMobile ? '16px' : '18px', color: isDark ? '#E5E7EB' : 'inherit' }}>
             휴가관리
           </Typography>
         </Box>
@@ -279,7 +280,7 @@ export default function LeaveManagement() {
               startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 16 }} />}
               onClick={() => navigate('/admin-leave')}
               sx={{
-                bgcolor: '#6F42C1',
+                bgcolor: isDark ? '#8B5CF6' : '#6F42C1',
                 fontSize: '12px',
                 textTransform: 'none',
               }}

@@ -139,3 +139,36 @@ export const truncateMessage = (message: string, maxLength = 100): string => {
   if (message.length <= maxLength) return message;
   return `${message.substring(0, maxLength)}...`;
 };
+
+/**
+ * 알림 미리보기 메시지 정리 (마크다운 제거 + 축약)
+ * @param message 원본 메시지
+ * @param maxLength 최대 길이
+ * @returns 정리된 미리보기
+ */
+export const sanitizeNotificationPreview = (
+  message: string,
+  maxLength = 100
+): string => {
+  if (!message) return '';
+
+  let cleaned = message;
+
+  cleaned = cleaned.replace(/\\n/g, '\n');
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+  cleaned = cleaned.replace(/`([^`]*)`/g, '$1');
+  cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1');
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+  cleaned = cleaned.replace(/^>\s?/gm, '');
+  cleaned = cleaned.replace(/^\s*[-*+]\s+/gm, '');
+  cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, '');
+  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
+  cleaned = cleaned.replace(/\*([^*]+)\*/g, '$1');
+  cleaned = cleaned.replace(/~~([^~]+)~~/g, '$1');
+  cleaned = cleaned.replace(/\|/g, ' ');
+
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+  return truncateMessage(cleaned, maxLength);
+};

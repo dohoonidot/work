@@ -96,10 +96,22 @@ class ChatService {
           try {
             const jsonData = JSON.parse(jsonPrefix.jsonText);
 
+            const approvalPayload =
+              jsonData?.approval_type ? jsonData
+              : jsonData?.data?.approval_type ? jsonData.data
+              : null;
+
+            const approvalType = approvalPayload ? String(approvalPayload.approval_type || '') : '';
+            const isLeaveGrantApproval = approvalPayload && allowedApprovalTypes.has(approvalType);
+
+            if (isLeaveGrantApproval && onApprovalTrigger) {
+              onApprovalTrigger(approvalPayload);
+            }
+
             const requiredFields = ['user_id', 'start_date', 'end_date', 'leave_type'];
             const hasAllRequiredFields = requiredFields.every(field => field in jsonData);
 
-            if (hasAllRequiredFields && onLeaveTrigger) {
+            if (!isLeaveGrantApproval && hasAllRequiredFields && onLeaveTrigger) {
               const triggerData = {
                 type: 'trigger_leave_modal',
                 data: jsonData
@@ -107,18 +119,6 @@ class ChatService {
 
               logger.dev('[Chat Service] 휴가 신청 트리거 감지:', triggerData);
               onLeaveTrigger(triggerData.data);
-            }
-
-            const approvalPayload =
-              jsonData?.approval_type ? jsonData
-              : jsonData?.data?.approval_type ? jsonData.data
-              : null;
-
-            if (approvalPayload && onApprovalTrigger) {
-              const approvalType = String(approvalPayload.approval_type || '');
-              if (allowedApprovalTypes.has(approvalType)) {
-                onApprovalTrigger(approvalPayload);
-              }
             }
 
             if (!jsonPrefix.rest.trim()) {
@@ -157,10 +157,22 @@ class ChatService {
           try {
             const jsonData = JSON.parse(jsonPrefix.jsonText);
 
+            const approvalPayload =
+              jsonData?.approval_type ? jsonData
+              : jsonData?.data?.approval_type ? jsonData.data
+              : null;
+
+            const approvalType = approvalPayload ? String(approvalPayload.approval_type || '') : '';
+            const isLeaveGrantApproval = approvalPayload && allowedApprovalTypes.has(approvalType);
+
+            if (isLeaveGrantApproval && onApprovalTrigger) {
+              onApprovalTrigger(approvalPayload);
+            }
+
             const requiredFields = ['user_id', 'start_date', 'end_date', 'leave_type'];
             const hasAllRequiredFields = requiredFields.every(field => field in jsonData);
 
-            if (hasAllRequiredFields && onLeaveTrigger) {
+            if (!isLeaveGrantApproval && hasAllRequiredFields && onLeaveTrigger) {
               const triggerData = {
                 type: 'trigger_leave_modal',
                 data: jsonData
@@ -168,18 +180,6 @@ class ChatService {
 
               logger.dev('[Chat Service] 휴가 신청 트리거 감지:', triggerData);
               onLeaveTrigger(triggerData.data);
-            }
-
-            const approvalPayload =
-              jsonData?.approval_type ? jsonData
-              : jsonData?.data?.approval_type ? jsonData.data
-              : null;
-
-            if (approvalPayload && onApprovalTrigger) {
-              const approvalType = String(approvalPayload.approval_type || '');
-              if (allowedApprovalTypes.has(approvalType)) {
-                onApprovalTrigger(approvalPayload);
-              }
             }
 
             if (!jsonPrefix.rest.trim()) {

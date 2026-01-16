@@ -833,7 +833,7 @@ export default function DesktopLeaveManagement({
                               }}
                             >
                               <Typography sx={{ fontSize: '10px', color: colorScheme.hintTextColor, mb: 0.25, fontWeight: 500 }}>
-                                {status.leaveType}
+                                {(status as any).leave_type || status.leaveType || '휴가'}
                               </Typography>
                               <Typography
                                 sx={{
@@ -843,13 +843,13 @@ export default function DesktopLeaveManagement({
                                   lineHeight: 1.1,
                                 }}
                               >
-                                {status.remainDays || 0}
+                                {(status as any).remain_days ?? status.remainDays ?? 0}
                                 <Typography component="span" sx={{ fontSize: '10px', ml: 0.25 }}>
                                   일
                                 </Typography>
                               </Typography>
                               <Typography sx={{ fontSize: '9px', color: colorScheme.hintTextColor, mt: 0.25 }}>
-                                / {status.totalDays || 0}일
+                                / {(status as any).total_days ?? status.totalDays ?? 0}일
                               </Typography>
                             </Box>
                           ))

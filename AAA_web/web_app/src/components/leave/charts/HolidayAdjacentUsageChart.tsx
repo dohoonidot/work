@@ -27,8 +27,19 @@ const HolidayAdjacentUsageChart: React.FC<HolidayAdjacentUsageChartProps> = ({
     const COLORS = ['#667EEA', isDarkTheme ? '#3A3A3A' : '#F3F4F6'];
 
     return (
-        <Box sx={{ width: '100%', height: 180, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <ResponsiveContainer width="100%" height="100%">
+        <Box
+            sx={{
+                width: '100%',
+                height: 180,
+                minHeight: 180,
+                minWidth: 0,
+                position: 'relative',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
                     <Pie
                         data={data}

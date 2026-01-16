@@ -32,11 +32,25 @@ const WeekdayDistributionChart: React.FC<WeekdayDistributionChartProps> = ({
             'Saturday': '토',
             'Sunday': '일',
         };
+        const shortMapping: Record<string, string> = {
+            mon: '월',
+            tue: '화',
+            wed: '수',
+            thu: '목',
+            fri: '금',
+            sat: '토',
+            sun: '일',
+        };
 
         return weekdays.map(day => {
             // 영어 키 또는 한글 키 모두 지원
             const englishDay = Object.keys(mapping).find(key => mapping[key] === day);
-            const value = (englishDay && weekdayData[englishDay]) || weekdayData[day] || 0;
+            const shortKey = Object.keys(shortMapping).find(key => shortMapping[key] === day);
+            const value =
+                (englishDay && weekdayData[englishDay]) ||
+                (shortKey && weekdayData[shortKey]) ||
+                weekdayData[day] ||
+                0;
 
             return {
                 name: day,

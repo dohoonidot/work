@@ -581,11 +581,7 @@ class StreamService {
         print('- 확장자: ${file.extension}');
         print('- MIME 타입: ${file.mimeType}');
 
-        // 개별 파일 크기 제한 (20MB)
-        if (file.size > 20 * 1024 * 1024) {
-          throw Exception(
-              '파일 크기가 너무 큽니다: ${file.name} (${(file.size / 1024 / 1024).toStringAsFixed(2)}MB)');
-        }
+        // 개별 파일 크기 제한 제거 (서버 제한에 따름)
       }
 
       // 전체 파일 크기 제한 없음
@@ -862,11 +858,7 @@ class StreamService {
         // 파일 타입 제한 제거: 이미지 + PDF 허용
         // final extension = file.extension?.toLowerCase() ?? '';
 
-        // 개별 파일 크기 제한 (20MB)
-        if (file.size > 20 * 1024 * 1024) {
-          throw Exception(
-              '파일 크기가 너무 큽니다: ${file.name} (${(file.size / 1024 / 1024).toStringAsFixed(2)}MB)');
-        }
+        // 개별 파일 크기 제한 제거 (서버 제한에 따름)
       }
 
       // multipart request 생성

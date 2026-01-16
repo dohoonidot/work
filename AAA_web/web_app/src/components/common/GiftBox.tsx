@@ -20,6 +20,7 @@ import {
   CardContent,
   CardMedia,
   Alert,
+  useTheme,
 } from '@mui/material';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import CloseIcon from '@mui/icons-material/Close';
@@ -46,6 +47,8 @@ import {
 export function GiftButton() {
   const [giftCount, setGiftCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   // 선물 개수 조회
   useEffect(() => {
@@ -78,10 +81,10 @@ export function GiftButton() {
         aria-label="선물함"
         sx={{
           mr: 1,
-          bgcolor: 'rgba(156, 136, 212, 0.9)',
+          bgcolor: isDark ? 'rgba(139, 92, 246, 0.35)' : 'rgba(156, 136, 212, 0.9)',
           color: 'white',
           '&:hover': {
-            bgcolor: 'rgba(156, 136, 212, 1)',
+            bgcolor: isDark ? 'rgba(139, 92, 246, 0.55)' : 'rgba(156, 136, 212, 1)',
           },
           boxShadow: 2,
         }}
@@ -112,6 +115,11 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const panelBg = isDark ? '#0F172A' : '#F8F9FA';
+  const panelSurface = isDark ? '#111827' : 'white';
+  const panelBorder = isDark ? 'rgba(255,255,255,0.08)' : 'divider';
   
   // 모바일 내보내기 관련 상태
   const [mobileExportDialogOpen, setMobileExportDialogOpen] = useState(false);
@@ -256,10 +264,19 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
       anchor="right"
       open={open}
       onClose={onClose}
+      ModalProps={{
+        sx: { zIndex: (theme) => theme.zIndex.appBar + 2 },
+      }}
+      sx={{
+        zIndex: (theme) => theme.zIndex.appBar + 2,
+        '& .MuiDrawer-paper': {
+          zIndex: (theme) => theme.zIndex.appBar + 3,
+        },
+      }}
       PaperProps={{
         sx: {
           width: { xs: '100%', sm: 400 },
-          bgcolor: '#F8F9FA',
+          bgcolor: panelBg,
         },
       }}
     >
@@ -268,7 +285,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
         <Box
           sx={{
             p: 2,
-            bgcolor: '#9C88D4',
+            bgcolor: isDark ? '#5B21B6' : '#9C88D4',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -284,8 +301,8 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
               label={`${gifts.length}개`}
               size="small"
               sx={{
-                bgcolor: 'white',
-                color: '#9C88D4',
+                bgcolor: isDark ? 'rgba(255,255,255,0.12)' : 'white',
+                color: isDark ? 'white' : '#9C88D4',
                 fontWeight: 600,
               }}
             />
@@ -293,13 +310,13 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
         </Box>
 
         {/* 액션 버튼 영역 */}
-        <Box sx={{ p: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+        <Box sx={{ p: 1, borderBottom: 1, borderColor: panelBorder, bgcolor: panelSurface }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {/* 왼쪽: 뒤로가기 버튼 */}
             <IconButton
               size="small"
               onClick={onClose}
-              sx={{ color: 'text.secondary' }}
+              sx={{ color: isDark ? 'grey.400' : 'text.secondary' }}
             >
               <ArrowBackIcon />
             </IconButton>
@@ -332,7 +349,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100%',
-                color: 'text.secondary',
+                color: isDark ? 'grey.400' : 'text.secondary',
               }}
             >
               <CardGiftcardIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
@@ -347,7 +364,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
             <List sx={{ p: 0 }}>
               {gifts.map((gift, index) => (
                 <React.Fragment key={gift.id || index}>
-                  <Card sx={{ mb: 2, boxShadow: 2 }}>
+                  <Card sx={{ mb: 2, boxShadow: 2, bgcolor: panelSurface }}>
                     <CardContent>
                       {/* 선물 타입 & NEW 배지 & 삭제 버튼 */}
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -378,7 +395,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
 
                       {/* 선물 내용 */}
                       {gift.gift_content && (
-                        <Typography variant="body1" sx={{ mb: 2 }}>
+                        <Typography variant="body1" sx={{ mb: 2, color: isDark ? 'grey.100' : 'text.primary' }}>
                           {gift.gift_content}
                         </Typography>
                       )}
@@ -455,7 +472,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
 
                       {/* 받은 시간 */}
                       {gift.received_at && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                        <Typography variant="caption" color={isDark ? 'grey.400' : 'text.secondary'} sx={{ display: 'block', mb: 1 }}>
                           받은 시간: {dayjs(gift.received_at).format('YYYY-MM-DD HH:mm')}
                         </Typography>
                       )}
@@ -495,6 +512,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
         PaperProps={{
           sx: {
             borderRadius: '16px',
+            bgcolor: panelSurface,
           },
         }}
       >
@@ -521,9 +539,9 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
             sx={{
               fontSize: '16px',
               fontWeight: 500,
-              color: 'grey.600',
+              color: isDark ? 'grey.300' : 'grey.600',
               '&:hover': {
-                bgcolor: 'grey.100',
+                bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'grey.100',
               },
             }}
           >
@@ -554,6 +572,11 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
         onClose={handleCloseDeleteConfirm}
         maxWidth="xs"
         fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: panelSurface,
+          },
+        }}
       >
         <DialogTitle>
           선물 삭제 확인
@@ -563,7 +586,7 @@ export function GiftPanel({ open, onClose, onGiftCountChange }: GiftPanelProps) 
             이 선물을 삭제하시겠습니까? 삭제된 선물은 복구할 수 없습니다.
           </Typography>
           {giftToDelete && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 2, bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'grey.50', borderRadius: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {giftToDelete.gift_content || giftToDelete.gift_type || '선물'}
               </Typography>

@@ -58,6 +58,7 @@ export default function MobileMainLayout({
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const location = useLocation();
   const user = authService.getCurrentUser();
@@ -425,9 +426,9 @@ export default function MobileMainLayout({
           sx={{
             width: { md: hideSidebarOnDesktop ? '100%' : `calc(100% - ${DRAWER_WIDTH}px)` },
             ml: { md: hideSidebarOnDesktop ? 0 : `${DRAWER_WIDTH}px` },
-            backgroundColor: 'white',
-            color: '#333333',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            backgroundColor: isDark ? '#0F172A' : 'white',
+            color: isDark ? '#E5E7EB' : '#333333',
+            boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.1)',
             zIndex: 1301, // 모바일 사이드바 z-index(1300)보다 높게 설정
           }}
         >

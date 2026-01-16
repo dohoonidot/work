@@ -15,6 +15,7 @@ import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/features/leave/approver_selection_modal.dart';
 import 'package:ASPN_AI_AGENT/core/config/app_config.dart';
+import 'package:ASPN_AI_AGENT/shared/utils/common_ui_utils.dart';
 
 /// 휴가 상신 초안 모달 위젯
 /// 기존 휴가신청 폼의 UI를 재사용하되, 채팅 관련 부분은 제외
@@ -125,12 +126,8 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
         });
         // 에러 메시지 표시 (선택사항)
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('내년 정기휴가 조회에 실패했습니다: ${response.error}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          CommonUIUtils.showErrorSnackBar(
+              context, '내년 정기휴가 조회에 실패했습니다: ${response.error}');
         }
       } else {
         print(
@@ -154,12 +151,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
         _nextYearLeaveStatus = null;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('내년 정기휴가 조회 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '내년 정기휴가 조회 중 오류가 발생했습니다: $e');
       }
     }
   }
@@ -1596,12 +1588,8 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
       // 현재 로그인된 사용자 ID 가져오기
       final currentUserId = ref.read(userIdProvider) ?? '';
       if (currentUserId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(
+            context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
         return;
       }
 
@@ -1662,13 +1650,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
 
       if (response.isSuccess) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('결재라인이 성공적으로 저장되었습니다'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          CommonUIUtils.showSuccessSnackBar(context, '결재라인이 성공적으로 저장되었습니다');
         }
         print('✅ 결재라인 저장 성공');
       } else {
@@ -1677,13 +1659,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
     } catch (e) {
       print('❌ 결재라인 저장 실패: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('결재라인 저장 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '결재라인 저장 중 오류가 발생했습니다: $e');
       }
     }
   }
@@ -1691,12 +1667,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
   /// 휴가 상신
   Future<void> _submitDraft() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('입력 정보를 확인해주세요'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      CommonUIUtils.showWarningSnackBar(context, '입력 정보를 확인해주세요');
       return;
     }
 
@@ -1704,22 +1675,12 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
 
     // 필수 필드 검증
     if (_selectedVacationType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('휴가종류를 선택해주세요'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      CommonUIUtils.showWarningSnackBar(context, '휴가종류를 선택해주세요');
       return;
     }
 
     if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('휴가 시작일과 종료일을 선택해주세요'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      CommonUIUtils.showWarningSnackBar(context, '휴가 시작일과 종료일을 선택해주세요');
       return;
     }
 
@@ -1752,13 +1713,8 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
         // 현재 로그인된 사용자 ID 가져오기
         final currentUserId = ref.read(userIdProvider) ?? '';
         if (currentUserId.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 1),
-            ),
-          );
+          CommonUIUtils.showErrorSnackBar(
+              context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
           return;
         }
 
@@ -1839,26 +1795,15 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
 
         if (response.isSuccess) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('휴가신청서가 성공적으로 상신되었습니다'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 1),
-              ),
-            );
+            CommonUIUtils.showSuccessSnackBar(context, '휴가신청서가 성공적으로 상신되었습니다');
             // 제출 완료 시 모달 완전히 닫기
             ref.read(leaveModalProvider.notifier).forceHideModal();
             await _slideController.reverse();
           }
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(response.error ?? '휴가 상신에 실패했습니다'),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 1),
-              ),
-            );
+            CommonUIUtils.showErrorSnackBar(
+                context, response.error ?? '휴가 상신에 실패했습니다');
           }
         }
       } catch (e) {
@@ -1867,13 +1812,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('휴가 상신 중 오류가 발생했습니다: $e'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 1),
-            ),
-          );
+          CommonUIUtils.showErrorSnackBar(context, '휴가 상신 중 오류가 발생했습니다: $e');
         }
       }
     }

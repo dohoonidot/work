@@ -17,10 +17,12 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import authService from './services/authService';
 import { useThemeStore } from './store/themeStore';
 import { useNotificationStore } from './store/notificationStore';
+import { useLeaveRequestDraftStore } from './store/leaveRequestDraftStore';
 import { useSseNotifications } from './hooks/useSseNotifications';
 import type { NotificationEnvelope } from './types/notification';
 import { NotificationPanel } from './components/common/NotificationPanel';
 import GiftArrivalPopup from './components/common/GiftArrivalPopup';
+import LeaveRequestDraftPanel from './components/leave/LeaveRequestDraftPanel';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -31,6 +33,9 @@ function AppContent() {
 
   // 알림 스토어
   const { setConnectionState, setSseEnabled } = useNotificationStore();
+
+  // 휴가 상신 패널 스토어
+  const { openPanel: openLeaveRequestPanel } = useLeaveRequestDraftStore();
 
   // 선물 도착 팝업 상태 관리
   const [giftArrivalPopup, setGiftArrivalPopup] = useState<{
@@ -87,6 +92,15 @@ function AppContent() {
       payload: envelope.payload,
     });
 
+    // 🔍 디버깅: 모든 이벤트 상세 출력
+    console.log('🔍 [App] 이벤트 상세:', {
+      event: envelope.event,
+      payload_approval_type: (envelope.payload as any)?.approval_type,
+      payload_status: (envelope.payload as any)?.status,
+      payload_leave_type: (envelope.payload as any)?.leave_type,
+      payload_grant_days: (envelope.payload as any)?.grant_days,
+    });
+
     // 2. 특정 이벤트는 스낵바로도 표시 (선택적)
     if (envelope.event === 'birthday') {
       const payload = envelope.payload as any;
@@ -103,6 +117,74 @@ function AppContent() {
       setNotification({
         message: '새로운 결재 문서가 도착했습니다',
         severity: 'info',
+      });
+    } else if (envelope.event === 'eapproval_alert') {
+      // 전자결재 결과 알림 처리
+      const payload = envelope.payload as any;
+      const status = payload?.status;
+      const statusText = status === 'APPROVED' ? '승인' : status === 'REJECTED' ? '반려' : '처리';
+      setNotification({
+        message: `전자결재가 ${statusText}되었습니다.`,
+        severity: status === 'APPROVED' ? 'success' : status === 'REJECTED' ? 'warning' : 'info',
+      });
+    } else if (envelope.event === 'leave_draft') {
+      // 🎉 휴가 초안(부여 승인 후) → 휴가 상신 패널 자동 오픈
+      const payload = envelope.payload as any;
+      console.log('📋 [App] 휴가 초안 메시지 수신 (leave_draft):', payload);
+
+      // Flutter의 _handleLeaveDraftMessage와 동일한 파라미터 처리
+      const user = authService.getCurrentUser();
+
+      // 날짜 파싱
+      const startDate = payload?.start_date || new Date().toISOString().split('T')[0];
+      const endDate = payload?.end_date || startDate;
+
+      // 승인자 정보
+      const approvalLine = payload?.approver_name ? [{
+        approverName: payload.approver_name,
+        approverId: payload.approver_id || '',
+        approvalSeq: 1,
+      }] : [];
+
+      // 참조자 정보
+      const ccList = (payload?.cc_list || []).map((cc: any) => ({
+        name: cc.name === 'name' ? cc.userId : cc.name,
+        userId: cc.userId?.includes('@') ? cc.userId : `${cc.userId || cc.name}@aspnc.com`,
+      }));
+
+      // 휴가 현황
+      const leaveStatus = (payload?.leave_status || []).map((ls: any) => ({
+        leaveType: ls.leave_type,
+        totalDays: ls.total_days || 0,
+        remainDays: ls.remain_days || 0,
+      }));
+
+      console.log('🎉 [App] 휴가 상신 패널 자동 오픈:', {
+        leaveType: payload?.leave_type,
+        startDate,
+        endDate,
+        approvalLine,
+        ccList,
+        leaveStatus,
+      });
+
+      // 휴가 상신 패널 오픈
+      openLeaveRequestPanel({
+        userId: payload?.user_id || user?.userId || '',
+        startDate,
+        endDate,
+        reason: payload?.reason || '',
+        leaveType: payload?.leave_type || '정기휴가',
+        halfDaySlot: (payload?.half_day_slot as 'ALL' | 'AM' | 'PM') || 'ALL',
+        approvalLine,
+        ccList,
+        leaveStatus,
+        useNextYearLeave: payload?.is_next_year === 1,
+      });
+
+      setNotification({
+        message: '휴가가 부여되었습니다. 휴가를 신청해주세요.',
+        severity: 'success',
       });
     }
 
@@ -130,7 +212,7 @@ function AppContent() {
         });
       }, 2000);
     }
-  }, []);
+  }, [openLeaveRequestPanel]);
 
   // SSE 연결 관리
   useSseNotifications({
@@ -173,6 +255,8 @@ function AppContent() {
         onConfirm={handleGiftArrivalConfirm}
         onClose={handleGiftArrivalClose}
       />
+      {/* 휴가 상신 패널 - 전역 (휴가 부여 승인 시 자동 오픈) */}
+      <LeaveRequestDraftPanel />
 
       <Routes>
         <Route

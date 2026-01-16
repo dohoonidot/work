@@ -622,13 +622,7 @@ class ChatArea extends ConsumerWidget {
                                           selection.start, selection.end);
                                   Clipboard.setData(
                                       ClipboardData(text: selectedText));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('선택한 텍스트를 복사했습니다.'),
-                                      duration: Duration(milliseconds: 500),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
+                                  CommonUIUtils.showInfoSnackBar(context, '선택한 텍스트를 복사했습니다.');
                                   return KeyEventResult.handled;
                                 }
                               }

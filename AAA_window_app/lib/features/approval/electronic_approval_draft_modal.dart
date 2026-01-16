@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 
 import '../../shared/providers/providers.dart';
+import '../../shared/utils/common_ui_utils.dart';
 
 /// 전자결재 상신 모달 (공통 필수영역 + 에디터)
 class ElectronicApprovalDraftModal extends ConsumerStatefulWidget {
@@ -1122,25 +1123,13 @@ class _ElectronicApprovalDraftModalState
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${result.files.length}개 파일이 추가되었습니다.'),
-              duration: const Duration(seconds: 2),
-              backgroundColor: const Color(0xFF28A745),
-            ),
-          );
+          CommonUIUtils.showSuccessSnackBar(context, '${result.files.length}개 파일이 추가되었습니다.');
         }
       }
     } catch (e) {
       print('❌ 파일 선택 오류: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('파일 선택 중 오류가 발생했습니다: $e'),
-            duration: const Duration(seconds: 3),
-            backgroundColor: const Color(0xFFDC3545),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '파일 선택 중 오류가 발생했습니다: $e');
       }
     }
   }

@@ -12,6 +12,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../shared/providers/providers.dart';
 import '../../shared/services/api_service.dart';
 import '../../core/config/feature_config.dart';
+import '../../shared/utils/common_ui_utils.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'html_test_provider.dart';
 import 'editable_html_table_renderer.dart';
@@ -1403,12 +1404,7 @@ class _CommonElectronicApprovalModalState
                             _serverHtmlContent = null;
                           });
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('테스트 HTML 데이터가 삭제되었습니다'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
+                          CommonUIUtils.showInfoSnackBar(context, '테스트 HTML 데이터가 삭제되었습니다');
                         },
                         icon: const Icon(Icons.clear, size: 16),
                         label: const Text('테스트 데이터 지우기',
@@ -2650,13 +2646,7 @@ class _CommonElectronicApprovalModalState
 
         // 성공 메시지
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${result.files.length}개 파일이 추가되었습니다.'),
-              duration: const Duration(seconds: 2),
-              backgroundColor: const Color(0xFF28A745),
-            ),
-          );
+          CommonUIUtils.showSuccessSnackBar(context, '${result.files.length}개 파일이 추가되었습니다.');
         }
       } else {
         print('ℹ️ 파일 선택 취소됨');
@@ -2664,13 +2654,7 @@ class _CommonElectronicApprovalModalState
     } catch (e) {
       print('❌ 파일 선택 오류: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('파일 선택 중 오류가 발생했습니다: $e'),
-            duration: const Duration(seconds: 3),
-            backgroundColor: const Color(0xFFDC3545),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '파일 선택 중 오류가 발생했습니다: $e');
       }
     }
   }
@@ -2692,12 +2676,7 @@ class _CommonElectronicApprovalModalState
   Future<void> _saveApprovalLine() async {
     // 승인자가 선택되지 않은 경우
     if (_selectedApproverIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('승인자를 선택해주세요'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CommonUIUtils.showWarningSnackBar(context, '승인자를 선택해주세요');
       return;
     }
 
@@ -2705,12 +2684,7 @@ class _CommonElectronicApprovalModalState
       // 현재 로그인된 사용자 ID 가져오기
       final currentUserId = ref.read(userIdProvider) ?? '';
       if (currentUserId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
         return;
       }
 
@@ -2768,13 +2742,7 @@ class _CommonElectronicApprovalModalState
 
       if (response.isSuccess) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('결재라인이 성공적으로 저장되었습니다'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          CommonUIUtils.showSuccessSnackBar(context, '결재라인이 성공적으로 저장되었습니다');
         }
         print('✅ 결재라인 저장 성공');
       } else {
@@ -2783,13 +2751,7 @@ class _CommonElectronicApprovalModalState
     } catch (e) {
       print('❌ 결재라인 저장 실패: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('결재라인 저장 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, '결재라인 저장 중 오류가 발생했습니다: $e');
       }
     }
   }
@@ -2836,12 +2798,7 @@ class _CommonElectronicApprovalModalState
     }
 
     if (!isValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      CommonUIUtils.showWarningSnackBar(context, errorMessage);
       return;
     }
 
@@ -2910,13 +2867,7 @@ class _CommonElectronicApprovalModalState
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('상신 중 오류가 발생했습니다: $e'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          CommonUIUtils.showErrorSnackBar(context, '상신 중 오류가 발생했습니다: $e');
         }
       }
     }
@@ -3025,13 +2976,7 @@ class _CommonElectronicApprovalModalState
       if (response.error == null) {
         print('✅ 휴가 부여 상신 성공! ID: ${response.id}');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('휴가 부여 상신이 성공적으로 완료되었습니다. (ID: ${response.id})'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          CommonUIUtils.showSuccessSnackBar(context, '휴가 부여 상신이 성공적으로 완료되었습니다. (ID: ${response.id})');
         }
       } else {
         print('❌ 휴가 부여 상신 실패: ${response.error}');
@@ -3069,12 +3014,7 @@ class _CommonElectronicApprovalModalState
       _isCustomDepartment = false;
       _fieldErrors.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('폼이 초기화되었습니다'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    CommonUIUtils.showInfoSnackBar(context, '폼이 초기화되었습니다');
   }
 
   /// 샘플 HTML 콘텐츠 로드 (실제로는 API에서 받아옴)
@@ -3170,13 +3110,7 @@ class _CommonElectronicApprovalModalState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('서버에서 HTML 템플릿을 불러왔습니다'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CommonUIUtils.showSuccessSnackBar(context, '서버에서 HTML 템플릿을 불러왔습니다');
       }
     } catch (e) {
       setState(() {
@@ -3184,13 +3118,7 @@ class _CommonElectronicApprovalModalState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('HTML 템플릿 로드 실패: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        CommonUIUtils.showErrorSnackBar(context, 'HTML 템플릿 로드 실패: $e');
       }
     }
   }
@@ -3205,12 +3133,7 @@ class _CommonElectronicApprovalModalState
     });
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('HTML 콘텐츠가 삭제되었습니다'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      CommonUIUtils.showInfoSnackBar(context, 'HTML 콘텐츠가 삭제되었습니다');
     }
   }
 

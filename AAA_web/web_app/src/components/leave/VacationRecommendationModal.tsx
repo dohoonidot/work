@@ -55,6 +55,106 @@ const VacationRecommendationModal: React.FC<VacationRecommendationModalProps> = 
 
     const [error, setError] = useState<string | null>(null);
 
+    const sanitizeMarkdown = (content: string) => {
+        if (!content) return '';
+        let sanitized = content;
+
+        sanitized = sanitized.replace(/\\n/g, '\n');
+        sanitized = sanitized.replace(/~~/g, '~');
+
+        sanitized = sanitized.replace(/```json[\s\S]*?```/g, '');
+        sanitized = sanitized.replace(/\b(short|long)\s*\{[^{}]*"weekday_counts"[^}]*\}[^}]*\}/gi, '');
+        sanitized = sanitized.replace(/\{[^{}]*"weekday_counts"[^}]*\}[^}]*\}?/g, '');
+        sanitized = sanitized.replace(/\{[^{}]*"holiday_adjacent[^}]*\}[^}]*\}?/g, '');
+        sanitized = sanitized.replace(/\{[^{}]*"total_leave_days"[^}]*\}[^}]*\}?/g, '');
+        sanitized = sanitized.replace(/\{[^{}]*"leaves"[^}]*\}[^}]*\}?/g, '');
+
+        const filtered = sanitized
+            .split('\n')
+            .filter((line) => {
+                const lowered = line.toLowerCase();
+                return !(
+                    lowered.includes('weekday_counts') ||
+                    lowered.includes('holiday_adjacent') ||
+                    lowered.includes('total_leave_days') ||
+                    lowered.includes('"leaves"') ||
+                    lowered.includes('"mon"') ||
+                    lowered.includes('"tue"') ||
+                    lowered.includes('"wed"') ||
+                    lowered.includes('"thu"') ||
+                    lowered.includes('"fri"') ||
+                    lowered.includes('"sat"') ||
+                    lowered.includes('"sun"')
+                );
+            })
+            .join('\n');
+
+        return filtered.replace(/\n{3,}/g, '\n\n').trim();
+    };
+
+    const normalizeLineBreaks = (content: string) => {
+        if (!content) return '';
+        const parts = content.split('```');
+        return parts
+            .map((part, index) => {
+                if (index % 2 === 1) return part;
+                return part.replace(/\n/g, '  \n');
+            })
+            .join('```');
+    };
+
+    const markdownComponents = {
+        p: ({ children }: any) => (
+            <Typography variant="body2" sx={{ mb: 1.5, lineHeight: 1.7, color: isDark ? '#D1D5DB' : '#4B5563' }}>
+                {children}
+            </Typography>
+        ),
+        del: ({ children }: any) => <span>{children}</span>,
+        table: ({ children }: any) => (
+            <Box
+                sx={{
+                    overflowX: 'auto',
+                    mb: 2,
+                    borderRadius: '12px',
+                    border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+                }}
+            >
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>{children}</table>
+            </Box>
+        ),
+        thead: ({ children }: any) => (
+            <thead style={{ backgroundColor: isDark ? '#111827' : '#F9FAFB' }}>{children}</thead>
+        ),
+        tbody: ({ children }: any) => <tbody>{children}</tbody>,
+        tr: ({ children }: any) => (
+            <tr style={{ borderBottom: `1px solid ${isDark ? '#1F2937' : '#E5E7EB'}` }}>{children}</tr>
+        ),
+        th: ({ children }: any) => (
+            <th
+                style={{
+                    textAlign: 'left',
+                    padding: '10px 12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: isDark ? '#E5E7EB' : '#374151',
+                }}
+            >
+                {children}
+            </th>
+        ),
+        td: ({ children }: any) => (
+            <td
+                style={{
+                    padding: '10px 12px',
+                    fontSize: '0.85rem',
+                    color: isDark ? '#D1D5DB' : '#4B5563',
+                }}
+            >
+                {children}
+            </td>
+        ),
+    };
+
     useEffect(() => {
         if (open && userId) {
             startRecommendation();
@@ -258,15 +358,9 @@ const VacationRecommendationModal: React.FC<VacationRecommendationModalProps> = 
                                     <Box sx={{ px: 1 }}>
                                         <ReactMarkdown
                                             remarkPlugins={[remarkGfm]}
-                                            components={{
-                                                p: ({ children }) => (
-                                                    <Typography variant="body2" sx={{ mb: 1.5, lineHeight: 1.7, color: isDark ? '#D1D5DB' : '#4B5563' }}>
-                                                        {children}
-                                                    </Typography>
-                                                ),
-                                            }}
+                                            components={markdownComponents}
                                         >
-                                            {state.markdownBuffer}
+                                            {normalizeLineBreaks(sanitizeMarkdown(state.markdownBuffer))}
                                         </ReactMarkdown>
                                     </Box>
                                 </Box>
@@ -308,10 +402,19 @@ const VacationRecommendationModal: React.FC<VacationRecommendationModalProps> = 
                                             },
                                         }}
                                     >
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {state.finalResponseContents}
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                                            {normalizeLineBreaks(sanitizeMarkdown(state.finalResponseContents))}
                                         </ReactMarkdown>
                                     </Box>
+
+                                    {Object.keys(state.monthlyDistribution).length > 0 && (
+                                        <Box>
+                                            <SectionTitle icon={InsertChartOutlinedIcon} title="📈 월별 연차 사용 분포" color="#6366F1" />
+                                            <GradientCard>
+                                                <MonthlyDistributionChart monthlyData={state.monthlyDistribution} isDarkTheme={isDark} />
+                                            </GradientCard>
+                                        </Box>
+                                    )}
 
                                     {state.recommendedDates.length > 0 && (
                                         <Box>

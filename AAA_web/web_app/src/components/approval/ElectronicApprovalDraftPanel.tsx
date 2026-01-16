@@ -17,6 +17,8 @@ import {
   DialogActions,
   useMediaQuery,
   Slide,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -137,6 +139,9 @@ export default function ElectronicApprovalDraftPanel() {
   const [isSequentialApproval, setIsSequentialApproval] = useState(false);
   const [webviewOpen, setWebviewOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const approvalOptions = LIMIT_APPROVAL_TYPE ? APPROVAL_TYPES_PROD : APPROVAL_TYPES_ALL;
 
@@ -291,18 +296,27 @@ export default function ElectronicApprovalDraftPanel() {
 
   const handleSaveApprovalLine = async () => {
     if (!user?.userId || approvers.length === 0) return;
-    await leaveService.saveEApprovalLine({
-      userId: user.userId,
-      approvalType: 'hr_leave_grant',
-      approvalLine: approvers.map((item) => ({
-        approverId: item.approverId,
-        approverName: item.approverName,
-        approvalSeq: item.approvalSeq,
-        department: item.department,
-        jobPosition: item.jobPosition,
-      })),
-      ccList: ccList.map((item: any) => ({ user_id: item.user_id || item.userId, name: item.name })),
-    });
+    try {
+      await leaveService.saveEApprovalLine({
+        userId: user.userId,
+        approvalType: 'hr_leave_grant',
+        approvalLine: approvers.map((item) => ({
+          approverId: item.approverId,
+          approverName: item.approverName,
+          approvalSeq: item.approvalSeq,
+          department: item.department,
+          jobPosition: item.jobPosition,
+        })),
+        ccList: ccList.map((item: any) => ({ user_id: item.user_id || item.userId, name: item.name })),
+      });
+      setSnackbarSeverity('success');
+      setSnackbarMessage('결재라인이 저장되었습니다.');
+      setSnackbarOpen(true);
+    } catch (error: any) {
+      setSnackbarSeverity('error');
+      setSnackbarMessage(error?.message || '결재라인 저장에 실패했습니다.');
+      setSnackbarOpen(true);
+    }
   };
 
   const handleSubmit = async () => {
@@ -972,6 +986,21 @@ export default function ElectronicApprovalDraftPanel() {
         </DialogActions>
       </Dialog>
 
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
       <ApproverSelectionModal
         open={isApproverModalOpen}
         onClose={() => setIsApproverModalOpen(false)}
@@ -1045,9 +1074,9 @@ export default function ElectronicApprovalDraftPanel() {
         <Box
           sx={{
             ...panelContentSx,
-            width: '50vw',
+            width: '60vw',
             minWidth: 500,
-            maxWidth: 800,
+            maxWidth: 1000,
             maxHeight: '90vh',
             borderRadius: '12px',
             overflow: 'hidden',

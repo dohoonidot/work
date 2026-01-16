@@ -87,6 +87,7 @@ export default function SettingsPage() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
 
   // 테마 모드를 문자열로 변환
   const themeMode = currentThemeMode === AppThemeMode.LIGHT
@@ -186,10 +187,10 @@ export default function SettingsPage() {
 
   const PrivacySection = ({ title, content }: { title: string; content: string }) => (
     <Box sx={{ mb: 3 }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: '#1F2937' }}>
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, color: isDark ? '#E5E7EB' : '#1F2937' }}>
         {title}
       </Typography>
-      <Typography variant="body2" sx={{ color: '#4B5563', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: isDark ? '#9CA3AF' : '#4B5563', lineHeight: 1.6 }}>
         {content}
       </Typography>
     </Box>
@@ -203,7 +204,7 @@ export default function SettingsPage() {
       showBackButton={true}
       onBackClick={() => navigate('/chat')}
     >
-      <Box sx={{ height: '100vh', overflow: 'auto', p: { xs: 2, md: 3 } }}>
+      <Box sx={{ height: '100vh', overflow: 'auto', p: { xs: 2, md: 3 }, bgcolor: isDark ? '#0F172A' : 'transparent' }}>
         {/* 헤더 */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" color="text.secondary">
@@ -218,7 +219,7 @@ export default function SettingsPage() {
         )}
 
         {/* 내 계정정보 섹션 */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, bgcolor: isDark ? '#111827' : 'background.paper' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <AccountIcon sx={{ color: 'primary.main', mr: 1 }} />
@@ -231,7 +232,7 @@ export default function SettingsPage() {
               <Box sx={{ mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                    <Box sx={{ p: 2, bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'grey.50', borderRadius: 2 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         사용자 ID
                       </Typography>
@@ -241,7 +242,7 @@ export default function SettingsPage() {
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                    <Box sx={{ p: 2, bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'grey.50', borderRadius: 2 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         이름
                       </Typography>
@@ -274,7 +275,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 테마 설정 섹션 */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, bgcolor: isDark ? '#111827' : 'background.paper' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <PaletteIcon sx={{ color: 'primary.main', mr: 1 }} />
@@ -298,7 +299,7 @@ export default function SettingsPage() {
                       border: themeMode === theme.value ? 2 : 1,
                       borderColor: themeMode === theme.value ? 'primary.main' : 'grey.300',
                       bgcolor: theme.color,
-                      color: theme.value === 'light' ? 'text.primary' : 'white',
+                      color: theme.value === 'light' ? (isDark ? '#111827' : 'text.primary') : 'white',
                     }}
                     onClick={() => handleThemeChange(theme.value as ThemeMode)}
                   >
@@ -313,7 +314,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 알림 설정 섹션 */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, bgcolor: isDark ? '#111827' : 'background.paper' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <NotificationsIcon sx={{ color: 'primary.main', mr: 1 }} />
@@ -343,7 +344,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 개인정보 설정 섹션 */}
-        <Card sx={{ mb: 3 }}>
+        <Card sx={{ mb: 3, bgcolor: isDark ? '#111827' : 'background.paper' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <SecurityIcon sx={{ color: 'primary.main', mr: 1 }} />
@@ -386,7 +387,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 앱 정보 섹션 */}
-        <Card>
+        <Card sx={{ bgcolor: isDark ? '#111827' : 'background.paper' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <InfoIcon sx={{ color: 'primary.main', mr: 1 }} />
@@ -430,7 +431,9 @@ export default function SettingsPage() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: 'linear-gradient(135deg, #4A90E2 0%, #7BB3F0 100%)',
+            background: isDark
+              ? 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)'
+              : 'linear-gradient(135deg, #4A90E2 0%, #7BB3F0 100%)',
             color: 'white',
             borderRadius: '20px 20px 0 0',
           }}>
@@ -445,7 +448,7 @@ export default function SettingsPage() {
             </IconButton>
           </DialogTitle>
 
-          <DialogContent dividers sx={{ p: 3 }}>
+          <DialogContent dividers sx={{ p: 3, bgcolor: isDark ? '#0F172A' : 'background.paper' }}>
             {PRIVACY_CONTENT.sections.map((section, index) => (
               <PrivacySection
                 key={index}

@@ -183,6 +183,7 @@ const AdminLeaveApprovalPage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
 
   // 상태 관리
   const [currentTab, setCurrentTab] = useState<'pending' | 'all'>('pending');
@@ -931,7 +932,7 @@ const AdminLeaveApprovalPage: React.FC = () => {
       {/* AppBar - Flutter 스타일 */}
       <Box
         sx={{
-          bgcolor: '#9C88D4',
+          bgcolor: isDark ? '#4C1D95' : '#9C88D4',
           color: 'white',
           px: 2,
           py: 1.5,
